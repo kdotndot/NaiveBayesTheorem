@@ -5,13 +5,17 @@ f = open("testing.txt", "r")
 
 
 
-numericalDict = {
+numDict = {
+    "loc" : 0,
     "mintemp" : 1,
     "maxtemp" : 2,
-    "rainfail" : 3,
+    "rainfall" : 3,
     "evap" : 4,
     "sunshine" : 5,
+    "windgusdir" : 6,
     "windgusspeed" : 7,
+    "winddir9am" : 8,
+    "winddir3pm" : 9,
     "windspeed9am" : 10,
     "windspeed3pm" : 11,
     "hum9am" : 12,
@@ -22,13 +26,37 @@ numericalDict = {
     "cloud3pm" : 17,
     "temp9am" : 18,
     "temp3pm" : 19,
+    "raintoday" : 20
 }
 
+featuresHold = {
+    "loc" : {},
+    "mintemp" : [],
+    "maxtemp" : [],
+    "rainfall" : [],
+    "evap" : [],
+    "sunshine" : [],
+    "windgusdir" : {},
+    "windgusspeed" : [],
+    "winddir9am" : {},
+    "winddir3pm" : {},
+    "windspeed9am" : [],
+    "windspeed3pm" : [],
+    "hum9am" : [],
+    "hum3pm" : [],
+    "press9am" : [],
+    "press3pm" : [],
+    "cloud9am" : [],
+    "cloud3pm" : [],
+    "temp9am" : [],
+    "temp3pm" : [],
+    "raintoday" : {}
+}
 
 featuresMean = {
     "mintemp" : 0,
     "maxtemp" : 0,
-    "rainfail" : 0,
+    "rainfall" : 0,
     "evap" : 0,
     "sunshine" : 0,
     "windgusspeed" : 0,
@@ -45,29 +73,7 @@ featuresMean = {
 }
 
 
-loc = {}
-mintemp = [0,0]
-maxtemp =[]
-rainfall =[]
-evap =[] 
-sunshine =[]
-windgusdir = {}
-windgusspeed =[]
-winddir9am = {}
-winddir3pm = {}
-windspeed9am =[]
-windspeed3pm =[]
-hum9am =[]
-hum3pm =[]
-press9am =[]
-press3pm =[]
-cloud9am =[]
-cloud3pm =[]
-temp9am =[]
-temp3pm =[]
-raintoday ={}
-
-f = open("testing.txt", "r")
+f = open("training.txt", "r")
 
 def addCategorical(dict, val, label):
     #Checking if val exists
@@ -102,38 +108,51 @@ def GiniFinder(labels):
             gini -= (labels[i]/tot)**2
         return gini
 
-
 Lines = f.readlines()
 
 for line in Lines:
-    x = line.split(", ")
+    a = line.split(", ")
     
-    addCategorical(loc,x[0], x[21])
-    #numericalSplit(mintemp,x[21])
-    mintemp.append(float(x[1]))
-    maxtemp.append(float(x[2]))
-    rainfall.append(float(x[3]))
-    evap.append(float(x[4]))
-    sunshine.append(float(x[5]))
-    addCategorical(windgusdir, x[6], x[21])
-    windgusspeed.append(float(x[7]))
-    addCategorical(winddir9am, x[8], x[21])
-    addCategorical(winddir3pm, x[9], x[21])
-    windspeed9am.append(float(x[10]))
-    windspeed3pm.append(float(x[11]))
-    hum9am.append(float(x[12]))
-    hum3pm.append(float(x[13]))
-    press9am.append(float(x[14]))
-    press3pm.append(float(x[15]))
-    cloud9am.append(float(x[16]))
-    cloud3pm.append(float(x[17]))
-    temp9am.append(float(x[18]))
-    temp3pm.append(float(x[19]))
-    addCategorical(raintoday,x[20],x[21])
+    for x in numDict:
+        if x == "loc":
+            addCategorical(featuresHold[x], a[0], a[21])
+        elif x == "windgusdir":
+            addCategorical(featuresHold[x], a[6], a[21])
+        elif x == "winddir9am":
+            addCategorical(featuresHold[x], a[8], a[21])
+        elif x == "winddir3pm":
+            addCategorical(featuresHold[x], a[9], a[21])
+        elif x == "raintoday":
+            addCategorical(featuresHold[x], a[20], a[21]) 
+        else:
+            featuresHold[x].append(float(a[numDict[x]]))
+
+for x in featuresHold:
+
+    if x != "loc" and x != "windgusdir" and x != "winddir9am" and x != "winddir3pm" and x != "raintoday":
+        featuresMean[x] = (stat.mean(featuresHold[x]))
+        featuresHold[x] = [[0,0], [0,0]]
 
 
+#Rereads file
+f.close()
+f = open("training.txt", "r")
+Lines = f.readlines()
 
-    
+for line in Lines:
+    a = line.split(", ")
+    for x in featuresMean:
+
+        if float(a[numDict[x]]) <= (featuresMean[x]):
+            
+            numericalSplit(featuresHold[x][0], a[21])
+        else:
+            
+            numericalSplit(featuresHold[x][1], a[21])
+        
+for x in featuresMean:
+    print(featuresHold[x])
+
 
 
 
