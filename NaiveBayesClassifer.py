@@ -1,6 +1,6 @@
 import numpy as np
 import statistics as stat
-
+import math
 f = open("testing.txt", "r")
 
 
@@ -97,17 +97,6 @@ def numericalSplit(list, label):
         list[1] += 1
 
 
-def GiniFinder(labels):
-        tot = 0
-        gini = 1
-        for i in range(0,len(labels)):
-            tot += labels[i]
-        if tot == 0:
-            return 1
-        for i in range(0,len(labels)):
-            gini -= (labels[i]/tot)**2
-        return gini
-
 Lines = f.readlines()
 
 for line in Lines:
@@ -150,8 +139,59 @@ for line in Lines:
             
             numericalSplit(featuresHold[x][1], a[21])
         
-for x in featuresMean:
-    print(featuresHold[x])
+
+#print(featuresHold["windgusdir"])
+
+
+
+f = open("testing.txt","r")
+Lines = f.readlines()
+finalprob = 0
+count = 0
+answer = []
+for line in Lines:
+    count += 1
+    a = line.split(", ")
+    probYes = float(0)
+    probNo = float(0)
+    for x in featuresMean:
+        if float(a[numDict[x]]) <= (featuresMean[x]):
+            probYes += math.log( featuresHold[x][0][0] / (featuresHold[x][0][0] + featuresHold[x][0][1]) )
+            probNo += math.log( featuresHold[x][0][1] / (featuresHold[x][0][0] + featuresHold[x][0][1]) )
+        else:
+    
+            probYes += math.log( featuresHold[x][1][0] / (featuresHold[x][1][0] + featuresHold[x][1][1]) )
+            probNo += math.log( featuresHold[x][1][1] / (featuresHold[x][1][0] + featuresHold[x][1][1]) )
+    #For loc
+    probYes += math.log(featuresHold["loc"][a[0]][0] / (featuresHold["loc"][a[0]][0] + featuresHold["loc"][a[0]][1]) )
+    probNo += math.log(featuresHold["loc"][a[0]][1] / (featuresHold["loc"][a[0]][0] + featuresHold["loc"][a[0]][1]) )
+    #For windgusdir
+    probYes += math.log(featuresHold["windgusdir"][a[6]][0] / (featuresHold["windgusdir"][a[6]][0] + featuresHold["windgusdir"][a[6]][1]) )
+    probNo += math.log(featuresHold["windgusdir"][a[6]][1] / (featuresHold["windgusdir"][a[6]][0] + featuresHold["windgusdir"][a[6]][1]) )
+    #For winddir9am
+    probYes += math.log(featuresHold["winddir9am"][a[8]][0] / (featuresHold["winddir9am"][a[8]][0] + featuresHold["winddir9am"][a[8]][1]) )
+    probNo += math.log(featuresHold["winddir9am"][a[8]][1] / (featuresHold["winddir9am"][a[8]][0] + featuresHold["winddir9am"][a[8]][1]) )
+    #For winddir3pm
+    probYes += math.log(featuresHold["winddir3pm"][a[9]][0] / (featuresHold["winddir3pm"][a[9]][0] + featuresHold["winddir3pm"][a[9]][1]) )
+    probNo += math.log(featuresHold["winddir3pm"][a[9]][1] / (featuresHold["winddir3pm"][a[9]][0] + featuresHold["winddir3pm"][a[9]][1]) )
+    #For raintoday
+    probYes += math.log(featuresHold["raintoday"][a[20]][0] / (featuresHold["raintoday"][a[20]][0] + featuresHold["raintoday"][a[20]][1]) )
+    probNo += math.log(featuresHold["raintoday"][a[20]][1] / (featuresHold["raintoday"][a[20]][0] + featuresHold["raintoday"][a[20]][1]) )
+
+
+    if probYes > probNo:
+        answer.append(1)
+        if 'Yes\n' == a[21]:
+            finalprob += 1
+    else:
+        answer.append(0)
+        if 'No\n' == a[21]:
+            finalprob += 1
+
+print(float(finalprob/count))
+
+
+
 
 
 
