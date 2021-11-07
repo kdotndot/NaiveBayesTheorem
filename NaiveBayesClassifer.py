@@ -1,9 +1,7 @@
 import numpy as np
 import statistics as stat
 import math
-f = open("testing.txt", "r")
-
-
+import sys
 
 numDict = {
     "loc" : 0,
@@ -73,7 +71,6 @@ featuresMean = {
 }
 
 
-f = open("training.txt", "r")
 
 def addCategorical(dict, val, label):
     #Checking if val exists
@@ -96,99 +93,106 @@ def numericalSplit(list, label):
     else:
         list[1] += 1
 
+def run_train_test(traindata, testdata):
+    f = open(traindata, "r")
+    Lines = f.readlines()
 
-Lines = f.readlines()
-
-for line in Lines:
-    a = line.split(", ")
-    
-    for x in numDict:
-        if x == "loc":
-            addCategorical(featuresHold[x], a[0], a[21])
-        elif x == "windgusdir":
-            addCategorical(featuresHold[x], a[6], a[21])
-        elif x == "winddir9am":
-            addCategorical(featuresHold[x], a[8], a[21])
-        elif x == "winddir3pm":
-            addCategorical(featuresHold[x], a[9], a[21])
-        elif x == "raintoday":
-            addCategorical(featuresHold[x], a[20], a[21]) 
-        else:
-            featuresHold[x].append(float(a[numDict[x]]))
-
-for x in featuresHold:
-
-    if x != "loc" and x != "windgusdir" and x != "winddir9am" and x != "winddir3pm" and x != "raintoday":
-        featuresMean[x] = (stat.mean(featuresHold[x]))
-        featuresHold[x] = [[0,0], [0,0]]
-
-
-#Rereads file
-f.close()
-f = open("training.txt", "r")
-Lines = f.readlines()
-
-for line in Lines:
-    a = line.split(", ")
-    for x in featuresMean:
-
-        if float(a[numDict[x]]) <= (featuresMean[x]):
-            
-            numericalSplit(featuresHold[x][0], a[21])
-        else:
-            
-            numericalSplit(featuresHold[x][1], a[21])
+    for line in Lines:
+        a = line.split(", ")
         
+        for x in numDict:
+            if x == "loc":
+                addCategorical(featuresHold[x], a[0], a[21])
+            elif x == "windgusdir":
+                addCategorical(featuresHold[x], a[6], a[21])
+            elif x == "winddir9am":
+                addCategorical(featuresHold[x], a[8], a[21])
+            elif x == "winddir3pm":
+                addCategorical(featuresHold[x], a[9], a[21])
+            elif x == "raintoday":
+                addCategorical(featuresHold[x], a[20], a[21]) 
+            else:
+                featuresHold[x].append(float(a[numDict[x]]))
 
-#print(featuresHold["windgusdir"])
+    for x in featuresHold:
+
+        if x != "loc" and x != "windgusdir" and x != "winddir9am" and x != "winddir3pm" and x != "raintoday":
+            featuresMean[x] = (stat.mean(featuresHold[x]))
+            featuresHold[x] = [[0,0], [0,0]]
+
+
+    #Rereads file
+    f.close()
+    f = open(traindata, "r")
+    Lines = f.readlines()
+
+    for line in Lines:
+        a = line.split(", ")
+        for x in featuresMean:
+
+            if float(a[numDict[x]]) <= (featuresMean[x]):
+                
+                numericalSplit(featuresHold[x][0], a[21])
+            else:
+                
+                numericalSplit(featuresHold[x][1], a[21])
+            
 
 
 
-f = open("testing.txt","r")
-Lines = f.readlines()
-finalprob = 0
-count = 0
-answer = []
-for line in Lines:
-    count += 1
-    a = line.split(", ")
-    probYes = float(0)
-    probNo = float(0)
-    for x in featuresMean:
-        if float(a[numDict[x]]) <= (featuresMean[x]):
-            probYes += math.log( featuresHold[x][0][0] / (featuresHold[x][0][0] + featuresHold[x][0][1]) )
-            probNo += math.log( featuresHold[x][0][1] / (featuresHold[x][0][0] + featuresHold[x][0][1]) )
+    f = open(testdata,"r")
+    Lines = f.readlines()
+    finalprob = 0
+    count = 0
+    answer = []
+    for line in Lines:
+        count += 1
+        a = line.split(", ")
+        probYes = float(0)
+        probNo = float(0)
+        for x in featuresMean:
+            if float(a[numDict[x]]) <= (featuresMean[x]):
+                probYes += math.log( featuresHold[x][0][0] / (featuresHold[x][0][0] + featuresHold[x][0][1]) )
+                probNo += math.log( featuresHold[x][0][1] / (featuresHold[x][0][0] + featuresHold[x][0][1]) )
+            else:
+        
+                probYes += math.log( featuresHold[x][1][0] / (featuresHold[x][1][0] + featuresHold[x][1][1]) )
+                probNo += math.log( featuresHold[x][1][1] / (featuresHold[x][1][0] + featuresHold[x][1][1]) )
+        #For loc
+        probYes += math.log(featuresHold["loc"][a[0]][0] / (featuresHold["loc"][a[0]][0] + featuresHold["loc"][a[0]][1]) )
+        probNo += math.log(featuresHold["loc"][a[0]][1] / (featuresHold["loc"][a[0]][0] + featuresHold["loc"][a[0]][1]) )
+        #For windgusdir
+        probYes += math.log(featuresHold["windgusdir"][a[6]][0] / (featuresHold["windgusdir"][a[6]][0] + featuresHold["windgusdir"][a[6]][1]) )
+        probNo += math.log(featuresHold["windgusdir"][a[6]][1] / (featuresHold["windgusdir"][a[6]][0] + featuresHold["windgusdir"][a[6]][1]) )
+        #For winddir9am
+        probYes += math.log(featuresHold["winddir9am"][a[8]][0] / (featuresHold["winddir9am"][a[8]][0] + featuresHold["winddir9am"][a[8]][1]) )
+        probNo += math.log(featuresHold["winddir9am"][a[8]][1] / (featuresHold["winddir9am"][a[8]][0] + featuresHold["winddir9am"][a[8]][1]) )
+        #For winddir3pm
+        probYes += math.log(featuresHold["winddir3pm"][a[9]][0] / (featuresHold["winddir3pm"][a[9]][0] + featuresHold["winddir3pm"][a[9]][1]) )
+        probNo += math.log(featuresHold["winddir3pm"][a[9]][1] / (featuresHold["winddir3pm"][a[9]][0] + featuresHold["winddir3pm"][a[9]][1]) )
+        #For raintoday
+        probYes += math.log(featuresHold["raintoday"][a[20]][0] / (featuresHold["raintoday"][a[20]][0] + featuresHold["raintoday"][a[20]][1]) )
+        probNo += math.log(featuresHold["raintoday"][a[20]][1] / (featuresHold["raintoday"][a[20]][0] + featuresHold["raintoday"][a[20]][1]) )
+
+
+        if probYes > probNo:
+            answer.append(1)
+            if 'Yes\n' == a[21]:
+                finalprob += 1
         else:
+            answer.append(0)
+            if 'No\n' == a[21]:
+                finalprob += 1
+
+    print(float(finalprob/count))
+
+
+
+if __name__ == "__main__":
     
-            probYes += math.log( featuresHold[x][1][0] / (featuresHold[x][1][0] + featuresHold[x][1][1]) )
-            probNo += math.log( featuresHold[x][1][1] / (featuresHold[x][1][0] + featuresHold[x][1][1]) )
-    #For loc
-    probYes += math.log(featuresHold["loc"][a[0]][0] / (featuresHold["loc"][a[0]][0] + featuresHold["loc"][a[0]][1]) )
-    probNo += math.log(featuresHold["loc"][a[0]][1] / (featuresHold["loc"][a[0]][0] + featuresHold["loc"][a[0]][1]) )
-    #For windgusdir
-    probYes += math.log(featuresHold["windgusdir"][a[6]][0] / (featuresHold["windgusdir"][a[6]][0] + featuresHold["windgusdir"][a[6]][1]) )
-    probNo += math.log(featuresHold["windgusdir"][a[6]][1] / (featuresHold["windgusdir"][a[6]][0] + featuresHold["windgusdir"][a[6]][1]) )
-    #For winddir9am
-    probYes += math.log(featuresHold["winddir9am"][a[8]][0] / (featuresHold["winddir9am"][a[8]][0] + featuresHold["winddir9am"][a[8]][1]) )
-    probNo += math.log(featuresHold["winddir9am"][a[8]][1] / (featuresHold["winddir9am"][a[8]][0] + featuresHold["winddir9am"][a[8]][1]) )
-    #For winddir3pm
-    probYes += math.log(featuresHold["winddir3pm"][a[9]][0] / (featuresHold["winddir3pm"][a[9]][0] + featuresHold["winddir3pm"][a[9]][1]) )
-    probNo += math.log(featuresHold["winddir3pm"][a[9]][1] / (featuresHold["winddir3pm"][a[9]][0] + featuresHold["winddir3pm"][a[9]][1]) )
-    #For raintoday
-    probYes += math.log(featuresHold["raintoday"][a[20]][0] / (featuresHold["raintoday"][a[20]][0] + featuresHold["raintoday"][a[20]][1]) )
-    probNo += math.log(featuresHold["raintoday"][a[20]][1] / (featuresHold["raintoday"][a[20]][0] + featuresHold["raintoday"][a[20]][1]) )
-
-
-    if probYes > probNo:
-        answer.append(1)
-        if 'Yes\n' == a[21]:
-            finalprob += 1
-    else:
-        answer.append(0)
-        if 'No\n' == a[21]:
-            finalprob += 1
-
-print(float(finalprob/count))
+    testingdata = sys.argv[1]
+    traindata = sys.argv[2]
+    run_train_test(testingdata,traindata)
 
 
 
